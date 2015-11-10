@@ -11,8 +11,8 @@
 public class NQueens {
     public static void main(String[] args) {
         int n = 17;
-        int spaces = 64 - n;
-        StringBuilder stringBoard = new StringBuilder(64);
+        int spaces = (n * n) - n;
+        StringBuilder stringBoard = new StringBuilder(spaces + n);
         for (int i = 0; i < n; i++) {
             stringBoard.append("Q");
         }
@@ -20,12 +20,11 @@ public class NQueens {
             stringBoard.append('-');
         }
 
-        Board board = new Board(stringBoard.toString());
+        Board board = new Board(stringBoard.toString(), n);
         System.out.println(board);
     }
 
     public static void hillClimbing(Board problem) {
         Board current = problem;
-
     }
 }
