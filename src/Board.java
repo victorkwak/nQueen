@@ -1,37 +1,70 @@
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Victor Kwak on 11/9/15.
  */
-public class Board {
+public class Board implements Comparable<Board>{
     private Square[][] board;
-    private int heuristicCost;
+    private Integer heuristicCost;
 
-    public Board(String stringBoard, int n) {
+    public Board(int n) {
         board = new Square[n][n];
-        int k = 0;
-        for (int i = 0; i < board.length; i++) {
+        for (int j = 0; j < board[0].length; j++) {
+            board[0][j] = new Queen(0, j);
+        }
+        for (int i = 1; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
-                if (stringBoard.charAt(k) == 'Q') {
-                    board[i][j] = new Queen(i, j);
-                } else {
-                    board[i][j] = new Empty(i, j);
-                }
-                ++k;
+                board[i][j] = new Empty(i, j);
             }
         }
         BoardUtils.shuffle(board);
-        heuristicCost = heuristic();
+    }
+
+    public Board(Square[][] board) {
+        this.board = BoardUtils.copyBoard(board);
+    }
+
+    public Board(List<Integer> queens) {
+        int n = queens.size();
+        board = new Square[n][n];
+        for (int j = 0; j < queens.size(); j++) {
+            board[queens.get(j)][j] = new Queen(queens.get(j), j);
+        }
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (!(board[i][j] instanceof Queen)) {
+                    board[i][j] = new Empty(i, j);
+                }
+            }
+        }
     }
 
     public Square[][] getBoard() {
         return board;
     }
 
-    public Board(Square[][] board) {
-        this.board = board;
-        heuristicCost = heuristic();
+    public int getHeuristicCost() {
+        if (heuristicCost == null) {
+            heuristicCost = heuristic();
+        }
+        return heuristicCost;
+    }
+
+    public int getFitnessScore() {
+        return (board.length * (board.length - 1) / 2) - getHeuristicCost();
+    }
+
+    public List<Integer> getBoardAsList() {
+        List<Integer> queens = new ArrayList<>();
+        for (int j = 0; j < board.length; j++) {
+            for (int i = 0; i < board.length; i++) {
+                if (board[i][j] instanceof Queen) {
+                    queens.add(i);
+                    break;
+                }
+            }
+        }
+        return queens;
     }
 
     private int heuristic() {
@@ -48,44 +81,31 @@ public class Board {
                 }
             }
         }
-        attackingPairs.forEach(System.out::println);
         return attackingPairs.size();
     }
 
     private void checkLeft(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.y == 0) {
-            return;
-        }
         for (int j = queen.y - 1; j >= 0; j--) {
             if (board[queen.x][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[queen.x][j]));
-                return;
             }
         }
     }
 
     private void checkRight(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.y == board[0].length - 1) {
-            return;
-        }
         for (int j = queen.y + 1; j < board[0].length; j++) {
             if (board[queen.x][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[queen.x][j]));
-                return;
             }
         }
     }
 
     private void checkUpRight(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.x == 0 && queen.y == board.length - 1) {
-            return;
-        }
         int i = queen.x - 1;
         int j = queen.y + 1;
         while (i >= 0 && j < board.length) {
             if (board[i][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[i][j]));
-                return;
             }
             --i;
             ++j;
@@ -93,15 +113,11 @@ public class Board {
     }
 
     private void checkUpLeft(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.x == 0 && queen.y == 0) {
-            return;
-        }
         int i = queen.x - 1;
         int j = queen.y - 1;
         while (i >= 0 && j >= 0) {
             if (board[i][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[i][j]));
-                return;
             }
             --i;
             --j;
@@ -109,15 +125,11 @@ public class Board {
     }
 
     private void checkDownRight(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.x == board[0].length - 1 && queen.y == board.length - 1) {
-            return;
-        }
         int i = queen.x + 1;
         int j = queen.y + 1;
         while (i < board.length && j < board.length) {
             if (board[i][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[i][j]));
-                return;
             }
             ++i;
             ++j;
@@ -125,15 +137,11 @@ public class Board {
     }
 
     private void checkDownLeft(Queen queen, Set<Pair> attackingPairs) {
-        if (queen.x == board[0].length - 1 && queen.y == 0) {
-            return;
-        }
         int i = queen.x + 1;
         int j = queen.y - 1;
         while (i < board.length && j >= 0) {
             if (board[i][j] instanceof Queen) {
                 attackingPairs.add(new Pair(queen, (Queen) board[i][j]));
-                return;
             }
             ++i;
             --j;
@@ -141,20 +149,22 @@ public class Board {
     }
 
     @Override
+    public int compareTo(Board o) {
+        return this.getFitnessScore() - o.getFitnessScore();
+    }
+
+    @Override
     public String toString() {
-        StringBuilder toString = new StringBuilder(64);
+        StringBuilder toString = new StringBuilder();
         for (Square[] squares : board) {
             for (int i = 0; i < squares.length; i++) {
                 toString.append(squares[i]);
                 if (i == squares.length - 1) {
                     toString.append("\n");
-                } else {
-                    toString.append(' ');
                 }
             }
         }
-        return toString.toString() + "\n" +
-                heuristicCost;
+        return toString.toString() +
+                getHeuristicCost();
     }
-
 }

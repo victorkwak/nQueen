@@ -4,7 +4,7 @@
 abstract class Square {
     int x;
     int y;
-    char symbol;
+    String symbol;
 
     public void setXY(int x, int y) {
         this.x = x;
@@ -17,7 +17,7 @@ abstract class Square {
             return false;
         }
         Square compare = (Square) o;
-        return symbol == compare.symbol && x == compare.x && y == compare.y;
+        return symbol.equals(compare.symbol) && x == compare.x && y == compare.y;
     }
 
     @Override

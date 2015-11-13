@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -14,10 +16,8 @@ public class BoardUtils {
         Random random = new Random();
         //Shuffle columns
         for (int j = 0; j < toShuffle[0].length; j++) {
-            for (int i = 0; i < toShuffle.length; i++) {
-                int rand = random.nextInt(toShuffle.length);
-                swap(toShuffle, i, j, rand, j);
-            }
+            int rand = random.nextInt(toShuffle.length);
+            swap(toShuffle, 0, j, rand, j);
         }
     }
 
@@ -29,32 +29,122 @@ public class BoardUtils {
         array[k][l].setXY(k, l);
     }
 
-    public Board highestNeighbor(Board current) {
-        Board highest = null;
+    public static Board lowestNeighbor(Board current) {
+        List<Board> children = generateChildren(current);
+        Board lowest = children.get(0);
+        for (int i = 1; i < children.size(); i++) {
+            if (children.get(i).getHeuristicCost() < lowest.getHeuristicCost()) {
+                lowest = children.get(i);
+            }
+        }
+
+        //Random
+        List<Board> lowestChildren = new ArrayList<>();
+        int lowestH = lowest.getHeuristicCost();
+        for (Board child : children) {
+            if (child.getHeuristicCost() == lowestH) {
+                lowestChildren.add(child);
+            }
+        }
+        Random random = new Random();
+        return lowestChildren.get(random.nextInt(lowestChildren.size()));
+    }
+
+    public static List<Board> generateChildren(Board current) {
+        List<Board> children = new ArrayList<>();
         for (Square[] squares : current.getBoard()) {
             for (Square square : squares) {
                 if (square instanceof Queen) {
-
+                    Square[][] toPassIn = copyBoard(current.getBoard());
+                    generateChildrenForQueen(toPassIn, (Queen) square, children);
                 }
             }
         }
-        return highest;
+        return children;
     }
 
-//    private Board swapUp(Board current, Queen queen) {
-//        if (queen.x == 0) {
-//            return null;
-//        }
-//        Square[][] temp = Arrays.copyOf(current.getBoard(), current.getBoard().length);
-//        Square temp =
-//
-//
-//
-//        for (int i = queen.x - 1; i >= 0; i--) {
-//            if (board[i][queen.y] instanceof Queen) {
-//                attackingPairs.add(new Pair(queen, (Queen) board[i][queen.y]));
-//                return;
-//            }
-//        return null;
-//    }
+    public static Board randomChild(Board current) {
+        List<Board> children = generateChildren(current);
+        Random random = new Random();
+        return children.get(random.nextInt(children.size()));
+    }
+
+    private static void generateChildrenForQueen(Square[][] board, Queen queen, List<Board> children) {
+        if (queen.x != 0) {
+            swap(board, queen.x, queen.y, 0, queen.y);
+            children.add(new Board(board));
+        }
+        for (int i = 0; i < board.length - 1; i++) {
+            swap(board, i, queen.y, i + 1, queen.y);
+            if (i + 1 != queen.x) {
+                children.add(new Board(board));
+            }
+        }
+    }
+
+    private static void printBoard(Square[][] board) {
+        for (Square[] squares : board) {
+            for (Square square : squares) {
+                System.out.print(square);
+            }
+            System.out.println();
+        }
+    }
+
+    public static Square[][] copyBoard(Square[][] board) {
+        Square[][] newBoard = new Square[board.length][board[0].length];
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (board[i][j] instanceof Queen) {
+                    newBoard[i][j] = new Queen(i, j);
+                } else {
+                    newBoard[i][j] = new Empty(i, j);
+                }
+            }
+        }
+        return newBoard;
+    }
+
+    public static Board[] getTwins(Board[] pair, Double mutationProbability) {
+        Board mom = pair[0];
+        Board dad = pair[1];
+        if (mom.getBoard().length != dad.getBoard().length) {
+            throw new RuntimeException("Incorrect number of chromosomes");
+        }
+        int dimension = mom.getBoard().length;
+        /**
+         * guarantee some proportion of parent is kept in child
+         */
+        Random random = new Random();
+        int cutOff = 1 + random.nextInt(dimension - 2);
+
+
+        ArrayList<Integer> guyFirstHalf = new ArrayList<>(mom.getBoardAsList().subList(0, cutOff));
+        ArrayList<Integer> guySecondHalf = new ArrayList<>(mom.getBoardAsList().subList(cutOff, dimension));
+
+        ArrayList<Integer> girlFirstHalf = new ArrayList<>(dad.getBoardAsList().subList(0, cutOff));
+        ArrayList<Integer> girlSecondHalf = new ArrayList<>(dad.getBoardAsList().subList(cutOff, dimension));
+
+
+        Board[] twins = new Board[2];
+        guyFirstHalf.addAll(girlSecondHalf);
+        girlFirstHalf.addAll(guySecondHalf);
+
+
+        if (mutationProbability != null) {
+            //consider each position in the mom
+            for (int i = 0; i < dimension; i++) {
+                if (random.nextDouble() < mutationProbability) {
+                    guyFirstHalf.set(i, random.nextInt(dimension));
+                }
+                if (random.nextDouble() < mutationProbability) {
+                    girlFirstHalf.set(i, random.nextInt(dimension));
+                }
+            }
+        }
+
+        twins[0] = new Board(guyFirstHalf);
+        twins[1] = new Board(girlFirstHalf);
+        return twins;
+    }
 }
