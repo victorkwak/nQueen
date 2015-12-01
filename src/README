@@ -1,0 +1,5 @@
+The program was written with Java 8 in mind. The main method is in the "NQueens.java" file and running it requires:
+
+javac NQueens.java && java NQueens
+
+This should run the algorithms and generate solved puzzles.

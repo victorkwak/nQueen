@@ -1,4 +1,5 @@
 /**
+ * Victor Kwak
  * A pair for when two queens are attacking each other
  */
 class Pair {

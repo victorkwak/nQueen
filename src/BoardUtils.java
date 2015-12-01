@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by Victor Kwak on 11/9/15.
+ * Victor Kwak
  */
 public class BoardUtils {
     /**

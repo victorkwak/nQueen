@@ -1,43 +1,72 @@
 import java.util.*;
 
 /**
- * Created by Victor Kwak on 11/8/15.
+ * Victor Kwak
  */
 public class NQueens {
 
+    private static int stepCounter;
+
+    /**
+     * For analysis, you should generate a large number of 17-queens instances (>100) and solve them.
+     * Measure the percentage of solved problems, search costs and the average running time.
+     * Explain why you get such results, for example, why the steepest-ascent hill climbing can only
+     * solve about 14% of the problems (remember this percentage is for 8-queen, your answer might be different,
+     * smaller percentage), or what kind of improvements have you made to make your algorithms more efficient.
+     *
+     * @param args
+     */
+
     public static void main(String[] args) {
-        int n = 17;
-        int counter = 0;
-        int loops = 1000;
+        //Program parameters
+        final int N = 17;
+        final int HILLCLIMBING_LOOPS = 100;
+
         long totalTime = 0;
-        for (int i = 0; i < loops; i++) {
+
+//        //HillClimbing with lateral movement
+        int solvedCounter = 0;
+        stepCounter = 0;
+        for (int i = 0; i < HILLCLIMBING_LOOPS; i++) {
             long start = System.nanoTime();
-            Board board = hillClimbing(new Board(n));
+            Board board = hillClimbing(new Board(N));
             totalTime += (System.nanoTime() - start);
             if (board.getHeuristicCost() == 0) {
-                ++counter;
+                ++solvedCounter;
+            }
+            if (i == HILLCLIMBING_LOOPS - 1) {
+                System.out.println(board);
             }
         }
-        System.out.println((totalTime / 1000000000d) / loops);
-        System.out.println(counter);
+        System.out.println("Number of problems attempted: " + HILLCLIMBING_LOOPS);
+        System.out.println("Number of problems solved: " + solvedCounter);
+        System.out.println("Average number of steps for Hill Climbing: " + (double) stepCounter / HILLCLIMBING_LOOPS);
+        System.out.println("Average time taken: " + (totalTime / 1000000000d) / HILLCLIMBING_LOOPS + "s");
+        System.out.println("Average steps take: " + (double) solvedCounter / HILLCLIMBING_LOOPS);
 
-        //GA stuff
-        counter = 0;
-        double percentageThatMates = .8;
-        double mutationRate = 0.01;
-        int numberOfGenerations = 1000;
-        for (int i = 0; i < 10; i++) {
-            Board gaBoard = geneticAlgorithm(n, numberOfGenerations, percentageThatMates, mutationRate);
+//        //GA stuff
+        solvedCounter = 0;
+        stepCounter = 0;
+        final double PERCENTAGE_THAT_MATES = .8;
+        final double MUTATION_RATE = 0.05;
+        final int NUMBER_OF_GENERATIONS = 1000;
+        final int GA_LOOPS = 100;
+        for (int i = 0; i < GA_LOOPS; i++) {
+            Board gaBoard = geneticAlgorithm(N, NUMBER_OF_GENERATIONS, PERCENTAGE_THAT_MATES, MUTATION_RATE);
             if (gaBoard != null) {
-                System.out.println("Solved!");
-                System.out.println(gaBoard);
-            } else {
-                System.out.println("Orgy failed");
+                if (i == 9) {
+                    System.out.println(gaBoard);
+                }
             }
         }
-
-        System.out.println((totalTime / 1000000000d) / loops);
-        System.out.println(counter);
+        System.out.println();
+        System.out.println("Number of problems attempted: " + GA_LOOPS);
+        System.out.println("Number of problems solved: " + solvedCounter);
+        System.out.println("Max number of generations before cutoff: " + NUMBER_OF_GENERATIONS);
+        System.out.println("Percentage of population that mates: " + PERCENTAGE_THAT_MATES * 100d + "%");
+        System.out.println("Rate of Mutation: " + MUTATION_RATE * 100d + "%");
+        System.out.println("Average number of steps for Genetic Algorithm: " + (double) stepCounter / GA_LOOPS);
+        System.out.println("Average time taken: " + (totalTime / 1000000000d) / GA_LOOPS + "s");
     }
 
     public static Board hillClimbing(Board problem) {
@@ -45,6 +74,7 @@ public class NQueens {
         int sameH = 0;
         int sameHMax = 100;
         while (true) {
+            ++stepCounter;
             neighbor = BoardUtils.lowestNeighbor(problem);
             if (problem.getHeuristicCost() < neighbor.getHeuristicCost()) {
                 return problem;
@@ -59,37 +89,6 @@ public class NQueens {
         }
     }
 
-    public static Board simulatedAnnealing(Board problem, int annealLimit) {
-        for (int i = 0; i < annealLimit; i++) {
-            double t = expDecay(i);
-            Board next = BoardUtils.randomChild(problem);
-            if (next.getHeuristicCost() == 0) {
-                return next;
-            }
-            double deltaE = problem.getHeuristicCost() - next.getHeuristicCost();
-            if (deltaE > 0) {
-                problem = next;
-            } else {
-                Random random = new Random();
-                double probability = Math.exp(deltaE / t);
-                if (random.nextDouble() < probability) {
-                    problem = next;
-                }
-            }
-        }
-        return problem;
-    }
-
-    /**
-     * Exponential decay function
-     *
-     * @param time
-     * @return
-     */
-    public static double expDecay(int time) {
-        return 300 * Math.pow(0.5, time);
-    }
-
     public static Board geneticAlgorithm(int n, int maxGenerations, double proportionOfPopToMate, double mutationProbability) {
         Random rand = new Random();
         int populationSize = n * n;
@@ -99,20 +98,19 @@ public class NQueens {
             Board toAdd = new Board(n);
             if (toAdd.getHeuristicCost() == 0) {
                 System.out.println("Obtained a solution while generating initial population: ");
-                System.out.println(toAdd);
                 return toAdd;
             }
             population.add(toAdd);
         }
 
         int generation = 0;
+
         while (generation < maxGenerations) {
             ++generation;
-            /**
-             * Magic Hashmap maps each possible randomly generated number to a board, obeying the probabilities
-             * of the heuristic function for the genetic algorithm. Memory heavy but hopefully fast.
-             */
+//            System.out.println(generation);
+            ++stepCounter;
             HashMap<Integer, Board> randomNumberToBoard = new HashMap<>();
+//            randomNumberToBoard = new ArrayList<>(30000);
             int totalNumberOfNonAttackingPairs = 0;
             int currentRandomNumber = 0;
             for (int i = 0; i < populationSize; i++) {
@@ -120,19 +118,24 @@ public class NQueens {
                 totalNumberOfNonAttackingPairs += toAdd.getFitnessScore();
                 for (; currentRandomNumber < totalNumberOfNonAttackingPairs; currentRandomNumber++) {
                     randomNumberToBoard.put(currentRandomNumber, toAdd);
+//                    randomNumberToBoard.add(currentRandomNumber, toAdd);
                 }
+
             }
             int numberOfMates = (int) (proportionOfPopToMate * populationSize);
+
             //ensure the number of mating individuals is even
             numberOfMates = (numberOfMates % 2 == 0 ? numberOfMates : numberOfMates + 1);
             int numberOfPairs = numberOfMates / 2;
 
             //generating mating pairs
-            ArrayList<Board[]> allPairs = new ArrayList<>();
+            List<Board[]> allPairs = new ArrayList<>();
             for (int i = 0; i < numberOfPairs; i++) {
                 Board[] pair = new Board[2];
                 pair[0] = randomNumberToBoard.get(rand.nextInt(totalNumberOfNonAttackingPairs));
                 pair[1] = randomNumberToBoard.get(rand.nextInt(totalNumberOfNonAttackingPairs));
+//                pair[0] = randomNumberToBoard[rand.nextInt(totalNumberOfNonAttackingPairs)];
+//                pair[1] = randomNumberToBoard[rand.nextInt(totalNumberOfNonAttackingPairs)];
                 allPairs.add(pair);
             }
 

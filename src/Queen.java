@@ -1,5 +1,5 @@
 /**
- * Created by Victor Kwak on 11/9/15.
+ * Victor Kwak
  */
 class Queen extends Square {
     Queen(int x, int y) {
