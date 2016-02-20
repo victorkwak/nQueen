@@ -63,12 +63,6 @@ public class BoardUtils {
         return children;
     }
 
-    public static Board randomChild(Board current) {
-        List<Board> children = generateChildren(current);
-        Random random = new Random();
-        return children.get(random.nextInt(children.size()));
-    }
-
     private static void generateChildrenForQueen(Square[][] board, Queen queen, List<Board> children) {
         if (queen.x != 0) {
             swap(board, queen.x, queen.y, 0, queen.y);
@@ -103,48 +97,5 @@ public class BoardUtils {
             }
         }
         return newBoard;
-    }
-
-    public static Board[] getTwins(Board[] pair, Double mutationProbability) {
-        Board mom = pair[0];
-        Board dad = pair[1];
-        if (mom.getBoard().length != dad.getBoard().length) {
-            throw new RuntimeException("Incorrect number of chromosomes");
-        }
-        int dimension = mom.getBoard().length;
-        /**
-         * guarantee some proportion of parent is kept in child
-         */
-        Random random = new Random();
-        int cutOff = 1 + random.nextInt(dimension - 2);
-
-
-        ArrayList<Integer> guyFirstHalf = new ArrayList<>(mom.getBoardAsList().subList(0, cutOff));
-        ArrayList<Integer> guySecondHalf = new ArrayList<>(mom.getBoardAsList().subList(cutOff, dimension));
-
-        ArrayList<Integer> girlFirstHalf = new ArrayList<>(dad.getBoardAsList().subList(0, cutOff));
-        ArrayList<Integer> girlSecondHalf = new ArrayList<>(dad.getBoardAsList().subList(cutOff, dimension));
-
-
-        Board[] twins = new Board[2];
-        guyFirstHalf.addAll(girlSecondHalf);
-        girlFirstHalf.addAll(guySecondHalf);
-
-
-        if (mutationProbability != null) {
-            //consider each position in the mom
-            for (int i = 0; i < dimension; i++) {
-                if (random.nextDouble() < mutationProbability) {
-                    guyFirstHalf.set(i, random.nextInt(dimension));
-                }
-                if (random.nextDouble() < mutationProbability) {
-                    girlFirstHalf.set(i, random.nextInt(dimension));
-                }
-            }
-        }
-
-        twins[0] = new Board(guyFirstHalf);
-        twins[1] = new Board(girlFirstHalf);
-        return twins;
     }
 }
