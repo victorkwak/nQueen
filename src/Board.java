@@ -4,7 +4,7 @@ import java.util.*;
  * Created by Victor Kwak on 11/9/15.
  */
 public class Board implements Comparable<Board>{
-    private Square[][] board;
+    final private Square[][] board;
     private Integer heuristicCost;
 
     public Board(int n) {
