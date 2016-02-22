@@ -3,7 +3,7 @@ import java.util.*;
 /**
  * Created by Victor Kwak on 11/9/15.
  */
-public class Board implements Comparable<Board>{
+public class Board {
     final private Square[][] board;
     private Integer heuristicCost;
 
@@ -24,21 +24,6 @@ public class Board implements Comparable<Board>{
         this.board = BoardUtils.copyBoard(board);
     }
 
-    public Board(List<Integer> queens) {
-        int n = queens.size();
-        board = new Square[n][n];
-        for (int j = 0; j < queens.size(); j++) {
-            board[queens.get(j)][j] = new Queen(queens.get(j), j);
-        }
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                if (!(board[i][j] instanceof Queen)) {
-                    board[i][j] = new Empty(i, j);
-                }
-            }
-        }
-    }
-
     public Square[][] getBoard() {
         return board;
     }
@@ -48,23 +33,6 @@ public class Board implements Comparable<Board>{
             heuristicCost = heuristic();
         }
         return heuristicCost;
-    }
-
-    public int getFitnessScore() {
-        return (board.length * (board.length - 1) / 2) - getHeuristicCost();
-    }
-
-    public List<Integer> getBoardAsList() {
-        List<Integer> queens = new ArrayList<>();
-        for (int j = 0; j < board.length; j++) {
-            for (int i = 0; i < board.length; i++) {
-                if (board[i][j] instanceof Queen) {
-                    queens.add(i);
-                    break;
-                }
-            }
-        }
-        return queens;
     }
 
     private int heuristic() {
@@ -146,11 +114,6 @@ public class Board implements Comparable<Board>{
             ++i;
             --j;
         }
-    }
-
-    @Override
-    public int compareTo(Board o) {
-        return this.getFitnessScore() - o.getFitnessScore();
     }
 
     @Override
