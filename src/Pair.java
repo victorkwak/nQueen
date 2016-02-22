@@ -3,17 +3,17 @@
  * A pair for when two queens are attacking each other
  */
 class Pair {
-    Queen[] pair;
+    private Queen one;
+    private Queen two;
 
     Pair(Queen one, Queen two) {
-        pair = new Queen[2];
-        pair[0] = one;
-        pair[1] = two;
+        this.one = one;
+        this.two = two;
     }
 
     @Override
     public int hashCode() {
-        return (pair[0].x * 17 + pair[0].y) + (pair[1].x * 17 + pair[1].y);
+        return (one.x * 17 + one.y) + (two.x * 17 + two.y);
     }
 
     @Override
@@ -22,15 +22,15 @@ class Pair {
             return false;
         }
         Pair pairToCompare = (Pair) o;
-        return pair[0].equals(pairToCompare.pair[0]) &&
-                pair[1].equals(pairToCompare.pair[1]) ||
-                pair[0].equals(pairToCompare.pair[1]) &&
-                        pair[1].equals(pairToCompare.pair[0]);
+        return one.equals(pairToCompare.one) &&
+                two.equals(pairToCompare.two) ||
+                one.equals(pairToCompare.two) &&
+                        two.equals(pairToCompare.one);
     }
 
     @Override
     public String toString() {
-        return "{" + pair[0].x + ", " + pair[0].y + "}" +
-                "{" + pair[1].x + ", " + pair[1].y + "}";
+        return "{" + one.x + ", " + one.y + "}" +
+                "{" + two.x + ", " + two.y + "}";
     }
 }
